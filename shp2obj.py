@@ -66,7 +66,7 @@ def shp2obj(shp_path, obj_path, field=None, buildingHeight=3):
             coords = np.array(geom.exterior.coords[:-1])
 
             # Get building height from field or use default
-            height = row[field] if field else buildingHeight
+            height = row[field] if field else 0
 
             # Calculate the centroid of the current polygon
             geoCenter = np.array(geom.centroid.coords[0])
