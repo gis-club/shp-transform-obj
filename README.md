@@ -4,12 +4,12 @@
 
 A Python tool for converting Shapefile (.shp) files to 3D OBJ files. This tool can transform geospatial data into 3D models that can be used in 3D modeling software.
 
-## My Motivation for Creating This Tool
+## Our Motivation for Creating This Tool
 
 The generated OBJ models are converted to GLB format for loading in Cesium. This tool was developed to bridge the gap between geospatial data and 3D web visualization, enabling seamless integration of building footprints into Cesium-based 3D applications. Therefore, the final exported model coordinate system in this tool is consistent with the Cesium coordinate system. If other coordinate systems are needed, modifications must be made accordingly.
 
 ### Background
-When working with 3D geospatial visualization projects, I often encountered the challenge of converting 2D building footprint data from Shapefiles into 3D models that could be loaded into Cesium for web-based 3D visualization. Existing tools were either too complex, expensive, or didn't provide the specific functionality needed for this workflow.
+When working with 3D geospatial visualization projects, we often encountered the challenge of converting 2D building footprint data from Shapefiles into 3D models that could be loaded into Cesium for web-based 3D visualization. Existing tools were either too complex, expensive, or didn't provide the specific functionality needed for this workflow.
 
 ### Solution
 This tool provides a streamlined solution that:
