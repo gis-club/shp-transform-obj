@@ -1,5 +1,7 @@
 # shp-transform-obj
 
+| [English](README.md) | [中文](README-zh.md) |
+
 A Python tool for converting Shapefile (.shp) files to 3D OBJ files. This tool can transform geospatial data into 3D models that can be used in 3D modeling software.
 
 ## Features

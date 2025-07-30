@@ -1,5 +1,7 @@
 # shp-transform-obj
 
+| [English](README.md) | [中文](README-zh.md) |
+
 一个用于将Shapefile（.shp）文件转换为3D OBJ文件的Python工具。该工具可以将地理空间数据转换为可在3D建模软件中使用的3D模型。
 
 ## 功能特性
