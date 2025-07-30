@@ -66,6 +66,10 @@ shp-transform-obj/
 - Python 3.10
 - Windows/Linux/macOS
 
+## SHP Data Acquisition
+
+We use SHP data downloaded from [https://download.geofabrik.de/](https://download.geofabrik.de/).
+
 ### Install Python Packages
 
 ```bash
