@@ -4,6 +4,10 @@
 
 A Python tool for converting Shapefile (.shp) files to 3D OBJ files. This tool can transform geospatial data into 3D models that can be used in 3D modeling software.
 
+## My Motivation for Creating This Tool
+
+The generated OBJ models are converted to GLB format for loading in Cesium. This tool was developed to bridge the gap between geospatial data and 3D web visualization, enabling seamless integration of building footprints into Cesium-based 3D applications. Therefore, the final exported model coordinate system in this tool is consistent with the Cesium coordinate system. If other coordinate systems are needed, modifications must be made accordingly.
+
 ## Features
 
 - 🗺️ **Shapefile Support**: Read and process Shapefile format geospatial data
@@ -18,21 +22,34 @@ A Python tool for converting Shapefile (.shp) files to 3D OBJ files. This tool c
 
 ```
 shp-transform-obj/
-├── main.py              # Main program file
-├── coordinate.py        # Coordinate conversion module
-├── createTriangle.py    # Triangulation processing module
-├── rotation.py          # Rotation transformation module
-├── test/               # Test files directory
-│   └── normal-polygon.py
-├── data/               # Data files directory
-│   └── building.shp    # Example Shapefile file
-└── README.md           # Project documentation
+├── main.py                    # Main program entry point
+├── shp2obj.py                # Core Shapefile to OBJ conversion module
+├── coordinate.py              # Geographic coordinate conversion utilities
+├── createTriangle.py          # Polygon triangulation algorithms
+├── rotation.py                # 2D/3D coordinate rotation transformations
+├── LICENSE                    # MIT License file
+├── README.md                  # English documentation
+├── README-zh.md              # Chinese documentation
+├── buildings.obj             # Generated 3D model output
+├── buildings.glb             # GLB format 3D model
+├── buildings.txt                # Center point coordinates
+├── aspose_3d-25.3.0-py3-none-win_amd64.whl  # 3D library wheel file
+├── data/                     # Input data directory
+│   ├── building.shp          # Shapefile geometry data
+│   ├── building.shx          # Shapefile index file
+│   ├── building.dbf          # Shapefile attribute data
+│   ├── building.prj          # Shapefile projection file
+│   ├── building.cpg          # Shapefile code page
+│   └── building.qmd          # Shapefile metadata
+└── test/                     # Test and example files
+    ├── normal-polygon.py     # Regular polygon triangulation test
+    └── hole-polygon.py       # Polygon with holes triangulation test
 ```
 
 ## Installation
 
 ### System Requirements
-- Python 3.7+
+- Python 3.10
 - Windows/Linux/macOS
 
 ### Install Python Packages
@@ -46,6 +63,7 @@ pip install geopy
 pip install trimesh
 pip install aspose-threed
 pip install matplotlib
+pip install ./aspose_3d-25.3.0-py3-none-win_amd64.whl
 ```
 
 ## Usage
@@ -78,14 +96,12 @@ output_file = 'buildings.obj'
 ### Example Code
 
 ```python
-import geopandas as gpd
-from main import process_shapefile
+from shp2obj import shp2obj
 
-# Read Shapefile
-gdf = gpd.read_file('data/building.shp')
-
-# Process and generate OBJ file
-process_shapefile(gdf, building_height=3, output_file='buildings.obj')
+if __name__ == '__main__':
+    shapefile_path = r'data\\building.shp'
+    obj_path = 'building.obj'
+    shp2obj(shapefile_path, obj_path)
 ```
 
 ## Core Modules
@@ -148,6 +164,7 @@ python test/normal-polygon.py
 2. **Data Quality**: Input polygons should be valid geometric shapes
 3. **Memory Usage**: Large datasets may require significant memory
 4. **Output Path**: Ensure you have write permissions for the output directory
+5. **buildings.txt**: This file contains the center coordinates used for positioning the 3D model when loading in Cesium
 
 ## Frequently Asked Questions
 

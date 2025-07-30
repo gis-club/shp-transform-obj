@@ -1,86 +1,135 @@
+"""
+Polygon triangulation algorithms for converting 2D polygons to triangular meshes.
+This module provides functions for triangulating both simple polygons and polygons with holes.
+"""
+
 import triangle as tr
 from shapely.geometry import LinearRing
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 绘制三角化之后的图像
-# 入参:edges:所有的边索引结构；vertices:所有的顶点坐标
-# 返回:画出图像
 def drawDelaunayFromTriangle(edges, vertices):
-    # 获取每一个边，并对每一个边进行绘制
+    """
+    Visualize the triangulation result using matplotlib.
+    
+    Args:
+        edges (numpy.ndarray): Array of edge indices defining triangle boundaries
+        vertices (numpy.ndarray): Array of vertex coordinates
+    
+    Returns:
+        None: Displays the triangulation plot
+    """
+    # Draw each edge of the triangulation
     for eachEdge in edges:
-        # 将每一个边都转换为坐标的形式
+        # Convert edge indices to coordinate points
         edgePoint = changeIndexToCoordinate(list(eachEdge), vertices)
-        plt.plot(edgePoint[:, 0], edgePoint[:, 1], color='black', linewidth=1)  # 绘制三角剖分的每一条边
+        plt.plot(edgePoint[:, 0], edgePoint[:, 1], color='black', linewidth=1)  # Draw each edge of the triangulation
 
     plt.gca().set_aspect(1)
 
-# 将点序列转换为坐标的形式
-# 入参:pointList:点坐标索引，可以输入单独索引或是列表形式；vertices:要转换的索引所在的所有点的坐标列表；
-# 返回:coordinate:输入点索引的坐标形式；例如:[0.1, 0.1]或[[0.1, 0.1], [0.1, 0.1]]；
 def changeIndexToCoordinate(pointList, vertices):
-    # 创建一个放置转换后坐标的空列表
+    """
+    Convert vertex indices to coordinate points.
+    
+    Args:
+        pointList (list or int): Vertex indices (single index or list of indices)
+        vertices (numpy.ndarray): Array of all vertex coordinates
+    
+    Returns:
+        numpy.ndarray: Coordinate points corresponding to the input indices
+    """
+    # Create empty array for converted coordinates
     coordinate = np.empty(shape=(len(pointList), 2))
 
-    # 判断输入的序列如果是列表则要进行循环
+    # Handle list of indices
     if type(pointList) is list:
-
-        # 循环输入索引中的每一个索引数字
+        # Convert each index to its corresponding coordinate
         for index, each in enumerate(pointList):
-            coordinate[index, :] = vertices[each]  # 因为所有的顶点坐标都是数组的形式，这里将其转换为列表的形式
+            coordinate[index, :] = vertices[each]  # Convert array format to list format
         return coordinate
 
-    # 如果不是列表则直接转换就可以了
+    # Handle single index
     else:
         coordinate[0, :] = vertices[pointList]
         return coordinate
 
-# 常规shp面转三角网
-# 入参: 矢量面
 def polygonToTriangleNormal(polygon):
-    # 将Shapely的多边形转换为triangle库能处理的格式
+    """
+    Triangulate a simple polygon without holes using the triangle library.
+    
+    This function converts a Shapely polygon to a triangular mesh by:
+    1. Extracting exterior coordinates
+    2. Defining boundary constraints
+    3. Performing constrained triangulation
+    4. Visualizing the result
+    
+    Args:
+        polygon (shapely.geometry.Polygon): Input polygon geometry
+    
+    Returns:
+        dict: Triangulation result containing vertices, triangles, and edges
+    """
+    # Convert Shapely polygon to triangle library format
     coords = np.array(polygon.exterior.coords[:-1])
 
-    # 定义三角化的边界约束
+    # Define boundary constraints for triangulation
     edges = []
     for i in range(len(coords) - 1):
         edges.append([i, i + 1])
-    # 闭合边界
+    # Close the boundary
     edges.append([len(coords) - 1, 0])
 
-    # 将边界约束转化为 numpy 数组
+    # Convert boundary constraints to numpy array
     edges = np.array(edges)
 
-    # 定义三角化的边界约束
+    # Define triangulation constraints
     constraints = {'segments': edges}
 
-    # 三角化
+    # Perform constrained triangulation with edge preservation
     triangulation = tr.triangulate({'vertices': coords, 'segments': constraints['segments']}, '-pe')
 
+    # Extract triangulation results
     triangles = triangulation['triangles']
     vertices = triangulation['vertices']
     edges = triangulation['edges']
+    
+    # Visualize the triangulation result
     plt.figure(num='triangle库效果')
     drawDelaunayFromTriangle(edges, vertices)
     # plt.show()
 
     return triangulation
 
-# 带孔洞shp面转三角网
-# 入参: polygon:矢量面; interior: 孔洞
 def polygonToTriangleHole(polygon, interiors):
-    # 将Shapely的多边形转换为triangle库能处理的格式
+    """
+    Triangulate a polygon with holes using the triangle library.
+    
+    This function handles complex polygons with interior holes by:
+    1. Processing exterior boundary
+    2. Processing interior hole boundaries
+    3. Defining constraints for both exterior and interior edges
+    4. Performing constrained triangulation with hole specification
+    
+    Args:
+        polygon (shapely.geometry.Polygon): Input polygon geometry
+        interiors (list): List of interior LinearRing objects representing holes
+    
+    Returns:
+        dict: Triangulation result containing vertices, triangles, and edges
+    """
+    # Convert Shapely polygon to triangle library format
     coords = np.array(polygon.exterior.coords[:-1])
 
-    # 定义三角化的边界约束
+    # Define exterior boundary constraints
     edges = []
     index = 0
     for i in range(len(coords) - 1):
         edges.append([i, i + 1])
         index = i + 1
-    # 闭合边界
+    # Close the exterior boundary
     edges.append([len(coords) - 1, 0])
 
+    # Process interior holes
     interiosEdges = []
     interiorCoords = None
     centerList = []
@@ -89,33 +138,41 @@ def polygonToTriangleHole(polygon, interiors):
 
     for interior in interiors:
         if isinstance(interior, LinearRing):
+            # Calculate hole center for triangle library
             center = interior.centroid.coords[0]
             centerList.append(center)
             interiorCoords = interior.coords[:-1]
 
-
         index = index + 1
+        # Define interior boundary constraints
         for i in range(len(interiorCoords) - 1):
             interiosEdges.append([i + index, i + index + 1])
 
+        # Close the interior boundary
         interiosEdges.append([len(interiorCoords) - 1 + index, index])
         coords = coords + interiorCoords
         index += len(interiorCoords) - 1
 
-    # 定义三角化的边界约束
+    # Define triangulation constraints including both exterior and interior edges
     constraints = {'segments': edges + interiosEdges}
 
-    # 三角化
+    # Perform constrained triangulation with hole specification
     triangulation = tr.triangulate({'vertices': coords, 'segments': constraints['segments'], 'holes': centerList }, '-pe')
+    
+    # Extract triangulation results
     triangles = triangulation['triangles']
     vertices = triangulation['vertices']
     edges = triangulation['edges']
+    
+    # Visualize the triangulation result
     plt.figure(num='triangle库效果')
     drawDelaunayFromTriangle(edges, vertices)
     # plt.show()
+    
     return triangulation
 
-# # 普通正方形
+# Example usage and testing code (commented out)
+# # Regular square
 # if __name__ == '__main__':
 #     polygon2 = [[0, 0], [10, 0], [10, 10], [0, 10]]
 #     segments2 = [[0, 1], [1, 2], [2, 3], [3, 0]]
@@ -127,9 +184,9 @@ def polygonToTriangleHole(polygon, interiors):
 #     drawDelaunayFromTriangle(edges2, vertices2)
 #     plt.show()
 #
-# # 带洞的正方形(单个孔洞)
+# # Square with single hole
 # if __name__ == '__main__':
-#     polygon = [[0, 0], [10, 0], [10, 10], [0, 10], [4, 4], [6, 4], [6, 6], [4, 6]]      # 正方形
+#     polygon = [[0, 0], [10, 0], [10, 10], [0, 10], [4, 4], [6, 4], [6, 6], [4, 6]]      # Square
 #     segments = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4]]
 #     holes = [[5, 5]]
 #     t = tr.triangulate({'vertices': polygon, 'segments': segments}, 'peq30a0.5')
@@ -140,9 +197,9 @@ def polygonToTriangleHole(polygon, interiors):
 #     drawDelaunayFromTriangle(edges, vertices)
 #     plt.show()
 
-# # 带洞的正方形(多个孔洞)
+# # Square with multiple holes
 # if __name__ == '__main__':
-#     polygon = [[0, 0], [10, 0], [10, 10], [0, 10], (1, 1), (3, 1), (3, 3), (1, 3), (4, 4), (6, 4), (6, 6), (4, 6)]      # 正方形
+#     polygon = [[0, 0], [10, 0], [10, 10], [0, 10], (1, 1), (3, 1), (3, 3), (1, 3), (4, 4), (6, 4), (6, 6), (4, 6)]      # Square
 #     segments = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4],[8,9], [9,10], [10,11],[11,8]]
 #     holes = [(2, 2), (5,5)]
 #     t = tr.triangulate({'vertices': polygon, 'segments': segments, 'holes': holes}, 'peq30a0.5')

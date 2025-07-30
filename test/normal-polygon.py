@@ -1,7 +1,12 @@
+"""
+Test script for normal polygon triangulation and 3D model generation.
+This script demonstrates the complete workflow from Shapefile to 3D OBJ/GLB model for simple polygons.
+"""
+
 import geopandas as gpd
 import numpy as np
 from shapely.geometry import Polygon, Point
-import triangle  # 用于三角化
+import triangle  # For triangulation
 import geopy.distance as geoDistance
 import trimesh
 import aspose.threed as a3d
@@ -9,129 +14,168 @@ import matplotlib.pyplot as plt
 from createTriangle import  drawDelaunayFromTriangle
 from rotation import rotate_2d
 
-# 读取shp文件
+# Read Shapefile data
 shapefile_path = r'../data/building.shp'
 gdf = gpd.read_file(shapefile_path)
 
+# Calculate the center point of the entire Shapefile for coordinate normalization
 shpCenter = np.array([(gdf.total_bounds[0] + gdf.total_bounds[2]) / 2,(gdf.total_bounds[1] + gdf.total_bounds[3])/2])
 
+# Set building height for 3D model generation
 buildingHeight = 30
 
-# 存储OBJ文件的内容
+# Store OBJ file content as a list of strings
 obj_content = []
 
-# 生成OBJ文件头部
+# Add OBJ file header comment
 obj_content.append("# Generated OBJ file\n")
 
-# 用于记录顶点索引的计数器
+# Vertex counter for tracking vertex indices in OBJ format
 vertex_counter = 1
 
-# 构建三角网
 def polygon_to_triangles(polygon):
-    # 将Shapely的多边形转换为triangle库能处理的格式
+    """
+    Convert a Shapely polygon to triangular mesh using triangle library.
+    
+    This function performs constrained triangulation to ensure the resulting
+    triangles respect the polygon boundaries.
+    
+    Args:
+        polygon (shapely.geometry.Polygon): Input polygon geometry
+    
+    Returns:
+        dict: Triangulation result containing vertices, triangles, and edges
+    """
+    # Convert Shapely polygon to triangle library format
     coords = np.array(polygon.exterior.coords[:-1])
 
-    # 定义三角化的边界约束
+    # Define boundary constraints for triangulation
     edges = []
     for i in range(len(coords) - 1):
         edges.append([i, i + 1])
-    # 闭合边界
+    # Close the boundary
     edges.append([len(coords) - 1, 0])
 
-    # 将边界约束转化为 numpy 数组
+    # Convert boundary constraints to numpy array
     edges = np.array(edges)
 
-    # 定义三角化的边界约束
+    # Define triangulation constraints
     constraints = {'segments': edges}
 
-    # 三角化
+    # Perform constrained triangulation with edge preservation
     triangulation = triangle.triangulate({'vertices': coords, 'segments': constraints['segments']}, '-pe')
 
+    # Extract triangulation results
     triangles = triangulation['triangles']
     vertices = triangulation['vertices']
     edges = triangulation['edges']
+    
+    # Visualize the triangulation result
     plt.figure(num='triangle库效果')
     drawDelaunayFromTriangle(edges, vertices)
     # plt.show()
 
     return triangulation
 
-# 计算坐标
 def calculateCoordinate(targeCoordinate, centerCoordinate):
-    # 以中心点为坐标原点，进行坐标构建
+    """
+    Convert geographic coordinates to local 3D coordinates relative to a center point.
+    
+    This function performs coordinate transformation from geographic (lat/lon) to local coordinates
+    suitable for 3D modeling, including quadrant determination and geodesic distance calculations.
+    
+    Args:
+        targeCoordinate (tuple): Target geographic coordinates (longitude, latitude)
+        centerCoordinate (tuple): Center reference coordinates (longitude, latitude)
+    
+    Returns:
+        numpy.ndarray: Local 3D coordinates [x, y] in meters
+    """
+    # Calculate relative position from center point (origin-based coordinate system)
     lon = targeCoordinate[0] - centerCoordinate[0]
     lat = targeCoordinate[1] - centerCoordinate[1]
 
-    # 判断象限
+    # Determine quadrant for proper sign assignment in coordinate system
     quadrantX = True
     quadrantY = True
     if lon < 0 and lat < 0:
+        # Southwest quadrant
         quadrantX = False
         quadrantY = False
     elif lon < 0 and lat > 0:
+        # Northwest quadrant
         quadrantX = False
     elif lon > 0 and lat < 0:
+        # Southeast quadrant
         quadrantY = False
 
-    # 计算距离
+    # Calculate geodesic distances in meters using WGS-84 ellipsoid
+    # X distance: latitude difference at center longitude
     distX = geoDistance.geodesic((targeCoordinate[1], centerCoordinate[0]), (centerCoordinate[1], centerCoordinate[0]), ellipsoid='WGS-84').meters
+    # Y distance: longitude difference at center latitude
     distY = geoDistance.geodesic((centerCoordinate[1], targeCoordinate[0]), (centerCoordinate[1], centerCoordinate[0]), ellipsoid='WGS-84').meters
 
-    # X对应Y, Y对应X
+    # Apply quadrant-based sign corrections
+    # Note: X corresponds to Y, Y corresponds to X due to coordinate system mapping
     if not bool(quadrantX):
         distY = 0 - distY
     if not bool(quadrantY):
         distX = 0 - distX
 
-    # 逆时针旋转90°
+    # Apply 90-degree counterclockwise rotation for 3D modeling coordinate system
     point = rotate_2d(np.array([distY, -distX]), -90)
 
     return point
 
+# Process each polygon in the Shapefile
 for idx, row in gdf.iterrows():
     geom = row.geometry
     if isinstance(geom, Polygon):
+        # Perform triangulation on the polygon
         triangulation = polygon_to_triangles(geom)
         coords = np.array(geom.exterior.coords[:-1])
+        
+        # Set building height (could be extracted from attribute field)
         # height = row['MEAN']
         height = 0
 
-        # 获取面的中心
+        # Calculate the centroid of the current polygon
         geoCenter = np.array(geom.centroid.coords[0])
 
-        # 点集合
+        # Store processed points
         points = []
 
-        # 计算模型中心点与shp中心点的距离
+        # Calculate coordinate offset relative to Shapefile center
         center = calculateCoordinate(geoCenter, shpCenter)
 
-        # 添加底面顶点
+        # Add bottom face vertices
         for coord in triangulation['vertices']:
-
             point = calculateCoordinate(coord, geoCenter)
             points.append(point)
             obj_content.append(f"v {point[0] + center[0]} {height} {point[1] + center[1]}\n")
 
-        # 添加顶部顶点
+        # Add top face vertices
         for point in points:
             obj_content.append(f"v {point[0] + center[0]} {height + buildingHeight} {point[1] + center[1]}\n")
 
+        # Calculate vertex count and offset for indexing
         num_vertices = len(coords)
         num_triangles = len(triangulation['triangles'])
         offset = num_vertices
 
-        # 添加底面三角形
+        # Add bottom face triangles
         for triangle_indices in triangulation['triangles']:
             obj_content.append("f " + " ".join([str(i + vertex_counter) for i in triangle_indices]) + "\n")
 
-        # 添加顶部三角形
+        # Add top face triangles
         for triangle_indices in triangulation['triangles']:
             obj_content.append("f " + " ".join([str(i + vertex_counter + offset) for i in triangle_indices]) + "\n")
 
-        # 添加侧面三角形
+        # Add side face triangles to create 3D building walls
         for triangle_indices in triangulation['triangles']:
             base_triangle = [vertex_counter + i for i in triangle_indices]
             top_triangle = [vertex_counter + i + offset for i in triangle_indices]
+            # Create side faces by connecting bottom and top vertices
             obj_content.append(f"f {base_triangle[0]} {base_triangle[1]} {top_triangle[1]}\n")
             obj_content.append(f"f {base_triangle[0]} {top_triangle[1]} {top_triangle[0]}\n")
             obj_content.append(f"f {base_triangle[1]} {base_triangle[2]} {top_triangle[2]}\n")
@@ -139,19 +183,21 @@ for idx, row in gdf.iterrows():
             obj_content.append(f"f {base_triangle[2]} {base_triangle[0]} {top_triangle[0]}\n")
             obj_content.append(f"f {base_triangle[2]} {top_triangle[0]} {top_triangle[2]}\n")
 
+        # Update vertex counter for next polygon
         vertex_counter += num_vertices * 2
 
-# 保存OBJ文件
+# Save the generated OBJ file
 with open('../buildings.obj', 'w') as f:
     f.writelines(obj_content)
 
-# 保存txt文件
+# Save center coordinates to a text file for reference
 with open('../center.txt', 'w') as f:
     f.writelines(str(shpCenter))
 
-# # 输入的.obj 文件路径
+# Convert OBJ to GLB format for Cesium compatibility
 obj_path = '../buildings.obj'
 glb_path = '../buildings.glb'
+# Alternative conversion using trimesh (commented out)
 # mesh = trimesh.load(obj_path, None, None, 'mesh')
 # mesh.export(glb_path)
 scene = a3d.Scene.from_file(obj_path)

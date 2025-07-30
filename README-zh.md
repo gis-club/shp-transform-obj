@@ -4,6 +4,10 @@
 
 一个用于将Shapefile（.shp）文件转换为3D OBJ文件的Python工具。该工具可以将地理空间数据转换为可在3D建模软件中使用的3D模型。
 
+## 我做这个工具的初衷
+
+生成的OBJ模型会转换为GLB格式，用于在Cesium中加载。这个工具的开发是为了弥合地理空间数据和3D网络可视化之间的差距，实现建筑轮廓与基于Cesium的3D应用程序的无缝集成。因此该工具中最终导出的模型坐标系是跟cesium坐标系一致的，如果是其他坐标系，需要自行修改。
+
 ## 功能特性
 
 - 🗺️ **Shapefile支持**: 读取并处理Shapefile格式的地理数据
@@ -18,21 +22,34 @@
 
 ```
 shp-transform-obj/
-├── main.py              # 主程序文件
-├── coordinate.py        # 坐标转换模块
-├── createTriangle.py    # 三角化处理模块
-├── rotation.py          # 旋转变换模块
-├── test/               # 测试文件目录
-│   └── normal-polygon.py
-├── data/               # 数据文件目录
-│   └── building.shp    # 示例Shapefile文件
-└── README.md           # 项目说明文档
+├── main.py                    # 主程序入口文件
+├── shp2obj.py                # 核心Shapefile转OBJ转换模块
+├── coordinate.py              # 地理坐标转换工具
+├── createTriangle.py          # 多边形三角化算法
+├── rotation.py                # 2D/3D坐标旋转变换
+├── LICENSE                    # MIT许可证文件
+├── README.md                  # 英文文档
+├── README-zh.md              # 中文文档
+├── buildings.obj             # 生成的3D模型输出
+├── buildings.glb             # GLB格式3D模型
+├── buildings.txt                # 中心点坐标
+├── aspose_3d-25.3.0-py3-none-win_amd64.whl  # 3D库wheel文件
+├── data/                     # 输入数据目录
+│   ├── building.shp          # Shapefile几何数据
+│   ├── building.shx          # Shapefile索引文件
+│   ├── building.dbf          # Shapefile属性数据
+│   ├── building.prj          # Shapefile投影文件
+│   ├── building.cpg          # Shapefile代码页
+│   └── building.qmd          # Shapefile元数据
+└── test/                     # 测试和示例文件
+    ├── normal-polygon.py     # 普通多边形三角化测试
+    └── hole-polygon.py       # 带孔洞多边形三角化测试
 ```
 
 ## 安装依赖
 
 ### 系统要求
-- Python 3.10+
+- Python 3.10
 - Windows/Linux/macOS
 
 ### 安装Python包
@@ -46,6 +63,7 @@ pip install geopy
 pip install trimesh
 pip install aspose-threed
 pip install matplotlib
+pip install ./aspose_3d-25.3.0-py3-none-win_amd64.whl
 ```
 
 ## 使用方法
@@ -78,14 +96,12 @@ output_file = 'buildings.obj'
 ### 示例代码
 
 ```python
-import geopandas as gpd
-from main import process_shapefile
+from shp2obj import shp2obj
 
-# 读取Shapefile
-gdf = gpd.read_file('data/building.shp')
-
-# 处理并生成OBJ文件
-process_shapefile(gdf, building_height=3, output_file='buildings.obj')
+if __name__ == '__main__':
+    shapefile_path = r'data\\building.shp'
+    obj_path = 'building.obj'
+    shp2obj(shapefile_path, obj_path)
 ```
 
 ## 核心模块说明
@@ -148,6 +164,7 @@ python test/normal-polygon.py
 2. **数据质量**: 输入的多边形应该是有效的几何形状
 3. **内存使用**: 大型数据集可能需要较多内存
 4. **输出路径**: 确保有写入权限的目录
+5. **buildings.txt**: 此文件包含在Cesium中加载时用于定位3D模型的中心坐标
 
 ## 常见问题
 
