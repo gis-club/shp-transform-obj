@@ -1,0 +1,175 @@
+# shp-transform-obj
+
+一个用于将Shapefile（.shp）文件转换为3D OBJ文件的Python工具。该工具可以将地理空间数据转换为可在3D建模软件中使用的3D模型。
+
+## 功能特性
+
+- 🗺️ **Shapefile支持**: 读取并处理Shapefile格式的地理数据
+- 🔺 **三角化处理**: 自动将多边形面转换为三角网格
+- 🕳️ **孔洞支持**: 支持带孔洞的复杂多边形
+- 🏗️ **3D建模**: 生成具有高度信息的3D建筑模型
+- 📐 **坐标转换**: 将地理坐标转换为3D空间坐标
+- 🔄 **旋转变换**: 支持2D和3D坐标旋转
+- 📁 **OBJ输出**: 生成标准的OBJ格式3D模型文件
+
+## 项目结构
+
+```
+shp-transform-obj/
+├── main.py              # 主程序文件
+├── coordinate.py        # 坐标转换模块
+├── createTriangle.py    # 三角化处理模块
+├── rotation.py          # 旋转变换模块
+├── test/               # 测试文件目录
+│   └── normal-polygon.py
+├── data/               # 数据文件目录
+│   └── building.shp    # 示例Shapefile文件
+└── README.md           # 项目说明文档
+```
+
+## 安装依赖
+
+### 系统要求
+- Python 3.10+
+- Windows/Linux/macOS
+
+### 安装Python包
+
+```bash
+pip install geopandas
+pip install numpy
+pip install shapely
+pip install triangle
+pip install geopy
+pip install trimesh
+pip install aspose-threed
+pip install matplotlib
+```
+
+## 使用方法
+
+### 基本使用
+
+1. **准备数据**: 将你的Shapefile文件放在`data/`目录下
+2. **修改配置**: 在`main.py`中修改文件路径和参数
+3. **运行程序**: 执行主程序
+
+```bash
+python main.py
+```
+
+### 配置参数
+
+在`main.py`中可以修改以下参数：
+
+```python
+# 输入文件路径
+shapefile_path = r'data\\building.shp'
+
+# 建筑高度（米）
+buildingHeight = 3
+
+# 输出文件名
+output_file = 'buildings.obj'
+```
+
+### 示例代码
+
+```python
+import geopandas as gpd
+from main import process_shapefile
+
+# 读取Shapefile
+gdf = gpd.read_file('data/building.shp')
+
+# 处理并生成OBJ文件
+process_shapefile(gdf, building_height=3, output_file='buildings.obj')
+```
+
+## 核心模块说明
+
+### coordinate.py
+- **功能**: 地理坐标转换
+- **主要函数**: `calculateCoordinate()`
+- **作用**: 将地理坐标转换为3D空间坐标
+
+### createTriangle.py
+- **功能**: 多边形三角化
+- **主要函数**: 
+  - `polygonToTriangleNormal()`: 处理普通多边形
+  - `polygonToTriangleHole()`: 处理带孔洞的多边形
+- **作用**: 将多边形面转换为三角网格
+
+### rotation.py
+- **功能**: 坐标旋转变换
+- **主要函数**:
+  - `rotate_X()`: 绕X轴旋转
+  - `rotate_Y()`: 绕Y轴旋转
+  - `rotate_Z()`: 绕Z轴旋转
+  - `rotate_2d()`: 2D平面旋转
+
+## 输出格式
+
+生成的OBJ文件包含：
+- **顶点数据**: 3D坐标点
+- **面数据**: 三角形面片定义
+- **材质信息**: 可选的材质和纹理信息
+
+### OBJ文件示例
+
+```
+# Generated OBJ file
+v 0.0 0.0 0.0
+v 10.0 0.0 0.0
+v 10.0 0.0 10.0
+v 0.0 0.0 10.0
+v 0.0 3.0 0.0
+v 10.0 3.0 0.0
+v 10.0 3.0 10.0
+v 0.0 3.0 10.0
+f 1 2 3
+f 1 3 4
+...
+```
+
+## 测试
+
+项目包含测试文件，位于`test/`目录：
+
+```bash
+python test/normal-polygon.py
+```
+
+## 注意事项
+
+1. **坐标系**: 确保输入的Shapefile使用正确的坐标系（如WGS84）
+2. **数据质量**: 输入的多边形应该是有效的几何形状
+3. **内存使用**: 大型数据集可能需要较多内存
+4. **输出路径**: 确保有写入权限的目录
+
+## 常见问题
+
+### Q: 如何处理大型Shapefile文件？
+A: 可以分批处理或增加内存限制。
+
+### Q: 生成的OBJ文件无法在3D软件中打开？
+A: 检查OBJ文件格式是否正确，确保所有面都是三角形。
+
+### Q: 坐标转换不准确？
+A: 检查输入数据的坐标系设置。
+
+## 贡献
+
+欢迎提交Issue和Pull Request来改进这个项目。
+
+## 许可证
+
+本项目采用MIT许可证。详见LICENSE文件。
+
+## 更新日志
+
+### v1.0.0
+- 初始版本发布
+- 支持基本的Shapefile到OBJ转换
+- 支持三角化和坐标转换
+- 支持带孔洞的多边形处理
