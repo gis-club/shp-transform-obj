@@ -15,7 +15,7 @@ gdf = gpd.read_file(shapefile_path)
 
 shpCenter = np.array([(gdf.total_bounds[0] + gdf.total_bounds[2]) / 2,(gdf.total_bounds[1] + gdf.total_bounds[3])/2])
 
-buildingHeight = 30
+buildingHeight = 3
 
 # 存储OBJ文件的内容
 obj_content = []
@@ -28,19 +28,22 @@ vertex_counter = 1
 
 for idx, row in gdf.iterrows():
     geom = row.geometry
-    interiors = gdf.interiors
-    interior = interiors.values[idx]
+
     if isinstance(geom, Polygon):
+        # 孔洞个数
+        interiorLength = len(geom.interiors)
+
         # 孔洞点位数
         interiorCount = 0
 
         # 三角分割结果
         triangulation = None
-        if len(interior) > 0:
-            triangulation = polygonToTriangleHole(geom, interior)
-            if isinstance(interior[0], LinearRing):
-                interiorCoords = interior[0].coords[:-1]
-                interiorCount += len(interiorCoords)
+        if interiorLength > 0:
+            triangulation = polygonToTriangleHole(geom, geom.interiors)
+            for interior in geom.interiors:
+                if isinstance(interior, LinearRing):
+                    interiorCoords = interior.coords[:-1]
+                    interiorCount += len(interiorCoords)
         else:
             triangulation = polygonToTriangleNormal(geom)
 

@@ -68,7 +68,7 @@ def polygonToTriangleNormal(polygon):
 
 # 带孔洞shp面转三角网
 # 入参: polygon:矢量面; interior: 孔洞
-def polygonToTriangleHole(polygon, interior):
+def polygonToTriangleHole(polygon, interiors):
     # 将Shapely的多边形转换为triangle库能处理的格式
     coords = np.array(polygon.exterior.coords[:-1])
 
@@ -83,25 +83,30 @@ def polygonToTriangleHole(polygon, interior):
 
     interiosEdges = []
     interiorCoords = None
-    center = 0
+    centerList = []
 
-    if isinstance(interior[0], LinearRing):
-        center = interior[0].centroid.coords[0]
-        interiorCoords = interior[0].coords[:-1]
+    coords = coords.tolist()
 
-    index = index + 1
-    for i in range(len(interiorCoords) - 1):
-        interiosEdges.append([i + index, i + index + 1])
+    for interior in interiors:
+        if isinstance(interior, LinearRing):
+            center = interior.centroid.coords[0]
+            centerList.append(center)
+            interiorCoords = interior.coords[:-1]
 
-    interiosEdges.append([len(interiorCoords) - 1 + index, index])
+
+        index = index + 1
+        for i in range(len(interiorCoords) - 1):
+            interiosEdges.append([i + index, i + index + 1])
+
+        interiosEdges.append([len(interiorCoords) - 1 + index, index])
+        coords = coords + interiorCoords
+        index += len(interiorCoords) - 1
 
     # 定义三角化的边界约束
     constraints = {'segments': edges + interiosEdges}
-    coords = coords.tolist()
-    coords = coords + interiorCoords
 
     # 三角化
-    triangulation = tr.triangulate({'vertices': coords, 'segments': constraints['segments'], 'holes': [center] }, '-pe')
+    triangulation = tr.triangulate({'vertices': coords, 'segments': constraints['segments'], 'holes': centerList }, '-pe')
     triangles = triangulation['triangles']
     vertices = triangulation['vertices']
     edges = triangulation['edges']
@@ -109,3 +114,42 @@ def polygonToTriangleHole(polygon, interior):
     drawDelaunayFromTriangle(edges, vertices)
     # plt.show()
     return triangulation
+
+# # 普通正方形
+# if __name__ == '__main__':
+#     polygon2 = [[0, 0], [10, 0], [10, 10], [0, 10]]
+#     segments2 = [[0, 1], [1, 2], [2, 3], [3, 0]]
+#     t2 = tr.triangulate({'vertices': polygon2, 'segments': segments2}, 'peq30a0.5')
+#     triangles2 = t2['triangles']
+#     vertices2 = t2['vertices']
+#     edges2 = t2['edges']
+#     plt.figure(num='triangle库效果2')
+#     drawDelaunayFromTriangle(edges2, vertices2)
+#     plt.show()
+#
+# # 带洞的正方形(单个孔洞)
+# if __name__ == '__main__':
+#     polygon = [[0, 0], [10, 0], [10, 10], [0, 10], [4, 4], [6, 4], [6, 6], [4, 6]]      # 正方形
+#     segments = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4]]
+#     holes = [[5, 5]]
+#     t = tr.triangulate({'vertices': polygon, 'segments': segments}, 'peq30a0.5')
+#     triangles = t['triangles']
+#     vertices = t['vertices']
+#     edges = t['edges']
+#     plt.figure(num='triangle库效果')
+#     drawDelaunayFromTriangle(edges, vertices)
+#     plt.show()
+
+# # 带洞的正方形(多个孔洞)
+# if __name__ == '__main__':
+#     polygon = [[0, 0], [10, 0], [10, 10], [0, 10], (1, 1), (3, 1), (3, 3), (1, 3), (4, 4), (6, 4), (6, 6), (4, 6)]      # 正方形
+#     segments = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4],[8,9], [9,10], [10,11],[11,8]]
+#     holes = [(2, 2), (5,5)]
+#     t = tr.triangulate({'vertices': polygon, 'segments': segments, 'holes': holes}, 'peq30a0.5')
+#     triangles = t['triangles']
+#     vertices = t['vertices']
+#     edges = t['edges']
+#     plt.figure(num='triangle库效果')
+#     drawDelaunayFromTriangle(edges, vertices)
+#     plt.show()
+
