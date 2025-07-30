@@ -60,15 +60,15 @@ shp-transform-obj/
     └── hole-polygon.py       # 带孔洞多边形三角化测试
 ```
 
+## SHP数据获取
+
+我们使用的shp数据是从[https://download.geofabrik.de/](https://download.geofabrik.de/)下载的。
+
 ## 安装依赖
 
 ### 系统要求
 - Python 3.10
 - Windows/Linux/macOS
-
-## SHP数据获取
-
-我们使用的shp数据是从[https://download.geofabrik.de/](https://download.geofabrik.de/)下载的。
 
 ### 安装Python包
 
@@ -198,6 +198,10 @@ A: 检查输入数据的坐标系设置。
 ## 贡献
 
 欢迎提交Issue和Pull Request来改进这个项目。
+
+## TODO
+
+我们之后会提供对应的ts代码，方便web人员使用。
 
 ## 许可证
 

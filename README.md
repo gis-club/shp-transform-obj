@@ -60,15 +60,15 @@ shp-transform-obj/
     └── hole-polygon.py       # Polygon with holes triangulation test
 ```
 
+## SHP Data Acquisition
+
+We use SHP data downloaded from [https://download.geofabrik.de/](https://download.geofabrik.de/).
+
 ## Installation
 
 ### System Requirements
 - Python 3.10
 - Windows/Linux/macOS
-
-## SHP Data Acquisition
-
-We use SHP data downloaded from [https://download.geofabrik.de/](https://download.geofabrik.de/).
 
 ### Install Python Packages
 
@@ -198,6 +198,10 @@ A: Check the coordinate system settings of the input data.
 ## Contributing
 
 We welcome Issue submissions and Pull Requests to improve this project.
+
+## TODO
+
+We will provide corresponding TypeScript code in the future to facilitate web developers' usage.
 
 ## License
 
