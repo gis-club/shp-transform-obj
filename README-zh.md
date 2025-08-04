@@ -117,9 +117,19 @@ output_file = 'buildings.obj'
 from shp2obj import shp2obj
 
 if __name__ == '__main__':
+    # 输入Shapefile路径 - 包含建筑轮廓数据
     shapefile_path = r'data\\building.shp'
+    
+    # 输出OBJ文件路径 - 生成的3D模型文件
     obj_path = 'building.obj'
-    shp2obj(shapefile_path, obj_path)
+    
+    # 转换Shapefile为OBJ格式（不包含法向量）
+    # 生成适用于简单3D可视化的基础OBJ文件
+    shp2obj(shapefile_path, obj_path, is_normal=False)
+
+    # 转换Shapefile为OBJ格式（包含法向量）
+    # 生成带有顶点法向量的增强OBJ文件，提供更好的光照和阴影效果
+    shp2obj(shapefile_path, obj_path, is_normal=True)
 ```
 
 ## 核心模块说明
@@ -144,14 +154,23 @@ if __name__ == '__main__':
   - `rotate_Z()`: 绕Z轴旋转
   - `rotate_2d()`: 2D平面旋转
 
+### normal.py
+- **功能**: 3D模型法向量计算
+- **主要函数**:
+  - `obj_normals()`: 计算所有面的法向量
+  - `normalized()`: 计算三角形面的归一化法向量
+  - `operate_obj()`: 处理OBJ文件并生成法向量
+- **作用**: 为3D渲染生成顶点法向量，提供增强的光照和阴影效果
+
 ## 输出格式
 
 生成的OBJ文件包含：
 - **顶点数据**: 3D坐标点
 - **面数据**: 三角形面片定义
+- **法向量**: 顶点法向量，用于增强光照效果（当is_normal=True时）
 - **材质信息**: 可选的材质和纹理信息
 
-### OBJ文件示例
+### 基础OBJ文件示例 (is_normal=False)
 
 ```
 # Generated OBJ file
@@ -165,6 +184,29 @@ v 10.0 3.0 10.0
 v 0.0 3.0 10.0
 f 1 2 3
 f 1 3 4
+...
+```
+
+### 增强OBJ文件示例 (is_normal=True)
+
+```
+# Generated OBJ file
+v 0.0 0.0 0.0
+v 10.0 0.0 0.0
+v 10.0 0.0 10.0
+v 0.0 0.0 10.0
+v 0.0 3.0 0.0
+v 10.0 3.0 0.0
+v 10.0 3.0 10.0
+v 0.0 3.0 10.0
+vn 0.0000 -1.0000 0.0000
+vn 0.0000 1.0000 0.0000
+vn 1.0000 0.0000 0.0000
+vn -1.0000 0.0000 0.0000
+f 1//1 2//1 3//1
+f 1//1 3//1 4//1
+f 5//2 8//2 7//2
+f 5//2 7//2 6//2
 ...
 ```
 
@@ -208,6 +250,13 @@ A: 检查输入数据的坐标系设置。
 本项目采用MIT许可证。详见LICENSE文件。
 
 ## 更新日志
+
+### v1.0.1
+- 新增法向量生成支持
+- 增强的OBJ文件，包含顶点法向量以提供更好的光照和阴影效果
+- 双重输出模式：基础OBJ文件和带法向量的增强OBJ文件
+- 完善的英文文档和代码注释
+- 新增中文文档支持
 
 ### v1.0.0
 - 初始版本发布

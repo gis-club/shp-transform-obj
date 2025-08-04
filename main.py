@@ -12,5 +12,10 @@ if __name__ == '__main__':
     # Output OBJ file path - the generated 3D model file
     obj_path = 'building.obj'
     
-    # Convert Shapefile to OBJ format
-    shp2obj(shapefile_path, obj_path)
+    # Convert Shapefile to OBJ format without normal vectors
+    # This generates a basic OBJ file suitable for simple 3D visualization
+    shp2obj(shapefile_path, obj_path, is_normal=False)
+
+    # Convert Shapefile to OBJ format with normal vectors
+    # This generates an enhanced OBJ file with vertex normals for better lighting and shading
+    shp2obj(shapefile_path, obj_path, is_normal=True)

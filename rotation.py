@@ -5,7 +5,7 @@ This module provides functions for rotating points around different axes in 3D s
 
 import numpy as np
 
-def rotate_Z(x, y, z, gamma):
+def rotate_z(x, y, z, gamma):
     """
     Rotate a 3D point around the Z-axis by a specified angle.
     
@@ -35,7 +35,7 @@ def rotate_Z(x, y, z, gamma):
     print(f"{(x, y, z)} rotate {gamma*(180/np.pi)} degrees around the Z-axis,result {(x_r, y_r, z_r)}")
     return x_r, y_r, z_r
 
-def rotate_Y(x, y, z, beta):
+def rotate_y(x, y, z, beta):
     """
     Rotate a 3D point around the Y-axis by a specified angle.
     
@@ -65,7 +65,7 @@ def rotate_Y(x, y, z, beta):
     print(f"{(x, y, z)} rotate {beta*(180/np.pi)} degrees around the Y-axis,result {(x_r, y_r, z_r)}")
     return x_r, y_r, z_r
 
-def rotate_X(x, y, z, alpha):
+def rotate_x(x, y, z, alpha):
     """
     Rotate a 3D point around the X-axis by a specified angle.
     
@@ -121,5 +121,5 @@ def rotate_2d(point, angle):
     matrix = np.array([[cos_theta, -sin_theta], [sin_theta, cos_theta]])
     
     # Apply rotation transformation
-    rotat_point = np.dot(point, matrix)
-    return rotat_point
+    result = np.dot(point, matrix)
+    return result

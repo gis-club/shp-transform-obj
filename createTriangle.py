@@ -8,7 +8,7 @@ from shapely.geometry import LinearRing
 import matplotlib.pyplot as plt
 import numpy as np
 
-def drawDelaunayFromTriangle(edges, vertices):
+def draw_delaunay_from_triangle(edges, vertices):
     """
     Visualize the triangulation result using matplotlib.
     
@@ -22,38 +22,38 @@ def drawDelaunayFromTriangle(edges, vertices):
     # Draw each edge of the triangulation
     for eachEdge in edges:
         # Convert edge indices to coordinate points
-        edgePoint = changeIndexToCoordinate(list(eachEdge), vertices)
-        plt.plot(edgePoint[:, 0], edgePoint[:, 1], color='black', linewidth=1)  # Draw each edge of the triangulation
+        edge_point = change_index_to_coordinate(list(eachEdge), vertices)
+        plt.plot(edge_point[:, 0], edge_point[:, 1], color='black', linewidth=1)  # Draw each edge of the triangulation
 
     plt.gca().set_aspect(1)
 
-def changeIndexToCoordinate(pointList, vertices):
+def change_index_to_coordinate(point_list, vertices):
     """
     Convert vertex indices to coordinate points.
     
     Args:
-        pointList (list or int): Vertex indices (single index or list of indices)
+        point_list (list or int): Vertex indices (single index or list of indices)
         vertices (numpy.ndarray): Array of all vertex coordinates
     
     Returns:
         numpy.ndarray: Coordinate points corresponding to the input indices
     """
     # Create empty array for converted coordinates
-    coordinate = np.empty(shape=(len(pointList), 2))
+    coordinate = np.empty(shape=(len(point_list), 2))
 
     # Handle list of indices
-    if type(pointList) is list:
+    if type(point_list) is list:
         # Convert each index to its corresponding coordinate
-        for index, each in enumerate(pointList):
+        for index, each in enumerate(point_list):
             coordinate[index, :] = vertices[each]  # Convert array format to list format
         return coordinate
 
     # Handle single index
     else:
-        coordinate[0, :] = vertices[pointList]
+        coordinate[0, :] = vertices[point_list]
         return coordinate
 
-def polygonToTriangleNormal(polygon):
+def polygon_to_triangle_normal(polygon):
     """
     Triangulate a simple polygon without holes using the triangle library.
     
@@ -70,14 +70,14 @@ def polygonToTriangleNormal(polygon):
         dict: Triangulation result containing vertices, triangles, and edges
     """
     # Convert Shapely polygon to triangle library format
-    coords = np.array(polygon.exterior.coords[:-1])
+    coord_list = np.array(polygon.exterior.coords[:-1])
 
     # Define boundary constraints for triangulation
     edges = []
-    for i in range(len(coords) - 1):
+    for i in range(len(coord_list) - 1):
         edges.append([i, i + 1])
     # Close the boundary
-    edges.append([len(coords) - 1, 0])
+    edges.append([len(coord_list) - 1, 0])
 
     # Convert boundary constraints to numpy array
     edges = np.array(edges)
@@ -86,21 +86,21 @@ def polygonToTriangleNormal(polygon):
     constraints = {'segments': edges}
 
     # Perform constrained triangulation with edge preservation
-    triangulation = tr.triangulate({'vertices': coords, 'segments': constraints['segments']}, '-pe')
+    triangulation = tr.triangulate({'vertices': coord_list, 'segments': constraints['segments']}, '-pe')
 
     # Extract triangulation results
-    triangles = triangulation['triangles']
-    vertices = triangulation['vertices']
-    edges = triangulation['edges']
+    # triangles = triangulation['triangles']
+    # vertices = triangulation['vertices']
+    # edges = triangulation['edges']
     
     # Visualize the triangulation result
-    plt.figure(num='triangle库效果')
-    drawDelaunayFromTriangle(edges, vertices)
+    # plt.figure(num='triangle库效果')
+    # draw_delaunay_from_triangle(edges, vertices)
     # plt.show()
 
     return triangulation
 
-def polygonToTriangleHole(polygon, interiors):
+def polygon_to_triangle_hole(polygon, interiors):
     """
     Triangulate a polygon with holes using the triangle library.
     
@@ -118,55 +118,55 @@ def polygonToTriangleHole(polygon, interiors):
         dict: Triangulation result containing vertices, triangles, and edges
     """
     # Convert Shapely polygon to triangle library format
-    coords = np.array(polygon.exterior.coords[:-1])
+    coord_list = np.array(polygon.exterior.coords[:-1])
 
     # Define exterior boundary constraints
     edges = []
     index = 0
-    for i in range(len(coords) - 1):
+    for i in range(len(coord_list) - 1):
         edges.append([i, i + 1])
         index = i + 1
     # Close the exterior boundary
-    edges.append([len(coords) - 1, 0])
+    edges.append([len(coord_list) - 1, 0])
 
     # Process interior holes
-    interiosEdges = []
-    interiorCoords = None
-    centerList = []
+    hole_edges = []
+    hole_points = None
+    center_list = []
 
-    coords = coords.tolist()
+    coord_list = coord_list.tolist()
 
     for interior in interiors:
         if isinstance(interior, LinearRing):
             # Calculate hole center for triangle library
             center = interior.centroid.coords[0]
-            centerList.append(center)
-            interiorCoords = interior.coords[:-1]
+            center_list.append(center)
+            hole_points = interior.coords[:-1]
 
         index = index + 1
         # Define interior boundary constraints
-        for i in range(len(interiorCoords) - 1):
-            interiosEdges.append([i + index, i + index + 1])
+        for i in range(len(hole_points) - 1):
+            hole_edges.append([i + index, i + index + 1])
 
         # Close the interior boundary
-        interiosEdges.append([len(interiorCoords) - 1 + index, index])
-        coords = coords + interiorCoords
-        index += len(interiorCoords) - 1
+        hole_edges.append([len(hole_points) - 1 + index, index])
+        coord_list = coord_list + hole_points
+        index += len(hole_points) - 1
 
     # Define triangulation constraints including both exterior and interior edges
-    constraints = {'segments': edges + interiosEdges}
+    constraints = {'segments': edges + hole_edges}
 
     # Perform constrained triangulation with hole specification
-    triangulation = tr.triangulate({'vertices': coords, 'segments': constraints['segments'], 'holes': centerList }, '-pe')
+    triangulation = tr.triangulate({'vertices': coord_list, 'segments': constraints['segments'], 'holes': center_list }, '-pe')
     
     # Extract triangulation results
-    triangles = triangulation['triangles']
-    vertices = triangulation['vertices']
-    edges = triangulation['edges']
+    # triangles = triangulation['triangles']
+    # vertices = triangulation['vertices']
+    # edges = triangulation['edges']
     
     # Visualize the triangulation result
-    plt.figure(num='triangle库效果')
-    drawDelaunayFromTriangle(edges, vertices)
+    # plt.figure(num='triangle库效果')
+    # draw_delaunay_from_triangle(edges, vertices)
     # plt.show()
     
     return triangulation

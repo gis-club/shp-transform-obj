@@ -117,9 +117,19 @@ output_file = 'buildings.obj'
 from shp2obj import shp2obj
 
 if __name__ == '__main__':
+    # Input Shapefile path - contains building footprint data
     shapefile_path = r'data\\building.shp'
+    
+    # Output OBJ file path - the generated 3D model file
     obj_path = 'building.obj'
-    shp2obj(shapefile_path, obj_path)
+    
+    # Convert Shapefile to OBJ format without normal vectors
+    # This generates a basic OBJ file suitable for simple 3D visualization
+    shp2obj(shapefile_path, obj_path, is_normal=False)
+
+    # Convert Shapefile to OBJ format with normal vectors
+    # This generates an enhanced OBJ file with vertex normals for better lighting and shading
+    shp2obj(shapefile_path, obj_path, is_normal=True)
 ```
 
 ## Core Modules
@@ -144,14 +154,23 @@ if __name__ == '__main__':
   - `rotate_Z()`: Rotate around Z-axis
   - `rotate_2d()`: 2D plane rotation
 
+### normal.py
+- **Function**: Normal vector calculation for 3D models
+- **Main Functions**:
+  - `obj_normals()`: Calculate normal vectors for all faces
+  - `normalized()`: Calculate normalized normal vector for a triangle face
+  - `operate_obj()`: Process OBJ file and generate normals
+- **Purpose**: Generate vertex normals for enhanced lighting and shading in 3D rendering
+
 ## Output Format
 
 The generated OBJ file contains:
 - **Vertex Data**: 3D coordinate points
 - **Face Data**: Triangle face definitions
+- **Normal Vectors**: Vertex normals for enhanced lighting (when is_normal=True)
 - **Material Information**: Optional material and texture information
 
-### OBJ File Example
+### Basic OBJ File Example (is_normal=False)
 
 ```
 # Generated OBJ file
@@ -165,6 +184,29 @@ v 10.0 3.0 10.0
 v 0.0 3.0 10.0
 f 1 2 3
 f 1 3 4
+...
+```
+
+### Enhanced OBJ File Example (is_normal=True)
+
+```
+# Generated OBJ file
+v 0.0 0.0 0.0
+v 10.0 0.0 0.0
+v 10.0 0.0 10.0
+v 0.0 0.0 10.0
+v 0.0 3.0 0.0
+v 10.0 3.0 0.0
+v 10.0 3.0 10.0
+v 0.0 3.0 10.0
+vn 0.0000 -1.0000 0.0000
+vn 0.0000 1.0000 0.0000
+vn 1.0000 0.0000 0.0000
+vn -1.0000 0.0000 0.0000
+f 1//1 2//1 3//1
+f 1//1 3//1 4//1
+f 5//2 8//2 7//2
+f 5//2 7//2 6//2
 ...
 ```
 
@@ -208,6 +250,13 @@ We will provide corresponding TypeScript code in the future to facilitate web de
 This project is licensed under the MIT License. See LICENSE file for details.
 
 ## Changelog
+
+### v1.0.1
+- Added support for normal vector generation
+- Enhanced OBJ files with vertex normals for better lighting and shading
+- Dual output mode: basic OBJ and enhanced OBJ with normals
+- Comprehensive English documentation and code comments
+- Added Chinese documentation (README-zh.md)
 
 ### v1.0.0
 - Initial version release
