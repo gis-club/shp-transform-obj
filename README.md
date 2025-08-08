@@ -243,7 +243,8 @@ We welcome Issue submissions and Pull Requests to improve this project.
 
 ## TODO
 
-We will provide corresponding TypeScript code in the future to facilitate web developers' usage.
+1. Fix redundant faces in building construction to optimize model efficiency
+2. We will provide corresponding TypeScript code in the future to facilitate web developers' usage
 
 ## License
 
