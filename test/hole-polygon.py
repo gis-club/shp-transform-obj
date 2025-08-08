@@ -11,7 +11,7 @@ import geopy.distance as geoDistance
 import trimesh
 import aspose.threed as a3d
 import matplotlib.pyplot as plt
-from createTriangle import  drawDelaunayFromTriangle
+from createTriangle import  draw_delaunay_from_triangle
 from rotation import rotate_2d
 
 # Read Shapefile data
@@ -96,8 +96,8 @@ def polygon_to_triangles(polygon, interior):
     
     # Visualize the triangulation result
     plt.figure(num='triangle库效果')
-    drawDelaunayFromTriangle(edges, vertices)
-    plt.show()
+    draw_delaunay_from_triangle(edges, vertices)
+    # plt.show()
     
     return triangulation
 
@@ -233,16 +233,16 @@ for idx, row in gdf.iterrows():
         vertex_counter += num_vertices * 2
 
 # Save the generated OBJ file
-with open('../buildings.obj', 'w') as f:
+with open('../building.obj', 'w') as f:
     f.writelines(obj_content)
 
 # Save center coordinates to a text file for reference
-with open('../center.txt', 'w') as f:
+with open('../building.txt', 'w') as f:
     f.writelines(str(shpCenter))
 
 # Convert OBJ to GLB format for Cesium compatibility
-obj_path = '../buildings.obj'
-glb_path = '../buildings.glb'
+obj_path = '../building.obj'
+glb_path = '../building.glb'
 # Alternative conversion using trimesh (commented out)
 # mesh = trimesh.load(obj_path, None, None, 'mesh')
 # mesh.export(glb_path)
